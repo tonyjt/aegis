@@ -15,7 +15,8 @@ var (
 	gCPU  int64
 	decay = 0.95
 
-	_ ratelimit.Limiter = (*BBR)(nil)
+	_    ratelimit.Limiter = (*BBR)(nil)
+	load atomic.Value
 )
 
 type (
@@ -26,7 +27,7 @@ type (
 )
 
 func init() {
-	go cpuproc()
+	//go cpuproc()
 }
 
 // cpu = cpuᵗ⁻¹ * decay + cpuᵗ * (1 - decay)
@@ -135,6 +136,9 @@ type BBR struct {
 
 // NewLimiter returns a bbr limiter
 func NewLimiter(opts ...Option) *BBR {
+	if load.CompareAndSwap(1, 2) {
+		go cpuproc()
+	}
 	opt := options{
 		Window:       time.Second * 10,
 		Bucket:       100,
